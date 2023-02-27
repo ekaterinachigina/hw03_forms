@@ -27,8 +27,13 @@ def index(request):
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
     posts = group.posts.all()[:POSTS_PER_PAGE]
+    post_list = Post.objects.all().order_by('-pub_date')
+    paginator = Paginator(post_list, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
     context = {
         'group': group,
+        'page_obj': page_obj,
         'posts': posts,
     }
     return render(request, 'posts/group_list.html', context)
@@ -74,25 +79,24 @@ def post_create(request):
         post_create.author = request.user
         post_create.save()
         return redirect('posts:profile', username=post_create.author)
-    return render(request, 'posts/create_post.html', context)
+    return render(request, 'posts/post_create.html', context)
 
 
 @login_required
 def post_edit(request, post_id):
     post = Post.objects.get(pk=post_id)
     if request.user.id != post.author.id:
-        return redirect('posts:post_detail', post_id)
+        return redirect('posts:post_detail', post_id=post.id)
     if request.method == 'POST':
         form = PostForm(request.POST, instance=post)
-        context = {
-            'form': form,
-            'is_edit': True
-        }
         if form.is_valid():
             post = form.save(commit=False)
             post.author = request.user
             post.save()
-            return redirect('posts:profile', post_id)
-        return render(request, 'posts/post_create.html', context)
+            return redirect('posts:post_detail', post_id=post.id)
     form = PostForm(instance=post)
+    context = {
+        'form': form,
+        'is_edit': True
+    }
     return render(request, 'posts/post_create.html', context)

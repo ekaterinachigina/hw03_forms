@@ -20,7 +20,7 @@
               Всего постов автора: {{ post.count }}
             </li>
             <li class="list-group-item">
-              <a href="{% url "posts:profile" posts.author.username %}">
+              <a href="{% url "posts:profile" post.author.username %}">
                 все посты пользователя
               </a>
             </li>
@@ -33,4 +33,4 @@
         </article>
       </div> 
     </main>
-{{ endblock }}
+  {% endblock %}

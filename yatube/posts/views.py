@@ -6,17 +6,12 @@ from .models import Group, Post, User
 
 from .forms import PostForm
 
-from yatube.settings import POSTS_PER_PAGE
-
 from .utils import get_paginator
 
 
 def index(request):
-    posts = Post.objects.select_related('author')[:POSTS_PER_PAGE]
     post_list = Post.objects.all().order_by('-pub_date')
-    paginator = get_paginator(post_list)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = get_paginator(request, post_list)
     context = {
         'page_obj': page_obj,
     }
@@ -25,11 +20,8 @@ def index(request):
 
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
-    posts = group.posts.all()[:POSTS_PER_PAGE]
     post_list = Post.objects.all().order_by('-pub_date')
-    paginator = get_paginator(post_list)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = get_paginator(request, post_list)
     context = {
         'group': group,
         'page_obj': page_obj,
@@ -39,28 +31,19 @@ def group_posts(request, slug):
 
 def profile(request, username):
     author = get_object_or_404(User, username=username)
-    post_list = Post.objects.filter(
-        author=author
-    ).order_by('-pub_date')
-    paginator = get_paginator(post_list)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    post_count = post_list.count()
+    post_list = author.posts.all()
+    page_obj = get_paginator(request, post_list)
     context = {
         'author': author,
-        'username': username,
         'page_obj': page_obj,
-        'post_count': post_count,
     }
     return render(request, 'posts/profile.html', context)
 
 
 def post_detail(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
-    post_count = Post.objects.filter(author=post.author).count()
     context = {
         'post': post,
-        'post_count': post_count,
     }
     return render(request, 'posts/post_detail.html', context)
 
@@ -83,15 +66,14 @@ def post_create(request):
 @login_required
 def post_edit(request, post_id):
     post = Post.objects.get(pk=post_id)
+    form = PostForm(request.POST or None, instance=post)
     if request.user.id != post.author.id:
         return redirect('posts:post_detail', post_id=post.id)
-    if request.method == 'POST':
-        form = PostForm(request.POST, instance=post)
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.author = request.user
-            post.save()
-            return redirect('posts:post_detail', post_id=post.id)
+    if form.is_valid():
+        post = form.save(commit=False)
+        post.author = request.user
+        post.save()
+        return redirect('posts:post_detail', post_id=post.id)
     form = PostForm(instance=post)
     context = {
         'form': form,

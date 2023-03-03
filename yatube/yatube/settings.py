@@ -14,7 +14,12 @@ SECRET_KEY = 'obm=a-ph*u-3tm9ez(+yoh)%rl70)bu4+x-=3hsc2!0&-po*tx'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '[::1]',
+    'testserver',
+]
 
 # Application definition
 

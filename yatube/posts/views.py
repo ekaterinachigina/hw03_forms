@@ -1,9 +1,7 @@
 from django.contrib.auth.decorators import login_required
-
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .models import Group, Post, User
-
 from .forms import PostForm
 
 from .utils import get_paginator
@@ -20,7 +18,7 @@ def index(request):
 
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
-    post_list = Post.objects.all().order_by('-pub_date')
+    post_list = group.posts.all()
     page_obj = get_paginator(request, post_list)
     context = {
         'group': group,

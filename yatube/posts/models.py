@@ -1,6 +1,6 @@
-from django.db import models
+from django.db import models 
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model 
 
 User = get_user_model()
 
@@ -25,7 +25,7 @@ class Post(models.Model):
                               on_delete=models.SET_NULL)
 
     def __str__(self) -> str:
-        return self.text[0:200]
+        return self.text[0:15]
 
     class Meta:
         ordering = ['-pub_date']
